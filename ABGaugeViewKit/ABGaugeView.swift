@@ -18,7 +18,11 @@ public class ABGaugeView: UIView {
     @IBInspectable public var arcAngle: CGFloat = 2.4
     
     @IBInspectable public var needleColor: UIColor = UIColor(red: 18/255.0, green: 112/255.0, blue: 178/255.0, alpha: 1.0)
+    private var oldValue: CGFloat = 0
     @IBInspectable public var needleValue: CGFloat = 0 {
+        willSet(newValue) {
+            oldValue = needleValue
+        }
         didSet {
             setNeedsDisplay()
         }
@@ -75,7 +79,7 @@ public class ABGaugeView: UIView {
     func drawSmartArc() {
         var angles = getAllAngles()
         let arcColors = colorCodes.components(separatedBy: ",")
-        let center = CGPoint(x: bounds.width / 2, y: bounds.height / 2)
+        let center = CGPoint(x: bounds.width / 2, y: (bounds.height / 2) + 20)
         
         var arcs = [ArcModel(startAngle: angles[0],
                              endAngle: angles.last!,
@@ -165,7 +169,7 @@ public class ABGaugeView: UIView {
     func drawNeedleCircle() {
         // 1
         let circleLayer = CAShapeLayer()
-        let circlePath = UIBezierPath(arcCenter: CGPoint(x: bounds.width / 2, y: bounds.height / 2), radius: self.bounds.width/20, startAngle: 0.0, endAngle: CGFloat(2 * Double.pi), clockwise: false)
+        let circlePath = UIBezierPath(arcCenter: CGPoint(x: bounds.width / 2, y: (bounds.height / 2) + 20), radius: self.bounds.width/20, startAngle: 0.0, endAngle: CGFloat(2 * Double.pi), clockwise: false)
         // 2
         circleLayer.path = circlePath.cgPath
         circleLayer.fillColor = circleColor.cgColor
@@ -178,7 +182,7 @@ public class ABGaugeView: UIView {
         let shadowLayer = CAShapeLayer()
         
         // 2
-        triangleLayer.frame = bounds
+        triangleLayer.frame = CGRect(x: bounds.origin.x, y: bounds.origin.y + 20, width: bounds.width, height: bounds.height)
         shadowLayer.frame = CGRect(x: bounds.origin.x, y: bounds.origin.y + 5, width: bounds.width, height: bounds.height)
         
         // 3
@@ -210,10 +214,11 @@ public class ABGaugeView: UIView {
         let theD = (radians - thisRadians)/2
         firstAngle += theD
         let needleValue = radian(for: self.needleValue) + firstAngle
-        animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: 0, toValue: needleValue*1.05, duration: 0.5) {
-            self.animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: needleValue*1.05, toValue: needleValue*0.95, duration: 0.4, callBack: {
-                self.animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: needleValue*0.95, toValue: needleValue, duration: 0.6, callBack: {})
-            })
+        let oldValue = radian(for: self.oldValue) + firstAngle
+        animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: oldValue, toValue: needleValue, duration: 0.5) {
+//            self.animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: needleValue*1.05, toValue: needleValue*0.95, duration: 0.4, callBack: {
+//                self.animate(triangleLayer: triangleLayer, shadowLayer: shadowLayer, fromValue: needleValue*0.95, toValue: needleValue, duration: 0.6, callBack: {})
+//            })
         }
     }
     
